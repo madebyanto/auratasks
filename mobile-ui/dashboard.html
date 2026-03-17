@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aura Tasks</title>
-    <link rel="icon" href="images/auratasks.svg" type="image/png">
+    <link rel="icon" href="/images/auratasks.svg" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -51,27 +51,29 @@
             --nyra-glow: 0 0 30px rgba(224, 8, 246, 0.2);
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --bg-main: #0d0e11;
-                --bg-card: #16181d;
-                --bg-hover: #1c1e24;
-                --text-main: #f1f3f5;
-                --text-secondary: #8b95a1;
-                --text-muted: #5a6272;
-                --border: #252830;
-                --border-focus: rgba(224, 8, 246, 0.5);
-                --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
-                --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
-                --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
-                --shadow-xl: 0 24px 64px rgba(0,0,0,0.6);
-                --nyra-bg: rgba(224, 8, 246, 0.06);
-                --nyra-border: rgba(224, 8, 246, 0.2);
-            }
+        /* ═══════════════════════════════════
+           DARK THEME — forced via [data-theme="dark"]
+           (non usa più prefers-color-scheme automatico)
+        ═══════════════════════════════════ */
+        [data-theme="dark"] {
+            --bg-main: #0d0e11;
+            --bg-card: #16181d;
+            --bg-hover: #1c1e24;
+            --text-main: #f1f3f5;
+            --text-secondary: #8b95a1;
+            --text-muted: #5a6272;
+            --border: #252830;
+            --border-focus: rgba(224, 8, 246, 0.5);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+            --shadow-xl: 0 24px 64px rgba(0,0,0,0.6);
+            --nyra-bg: rgba(224, 8, 246, 0.06);
+            --nyra-border: rgba(224, 8, 246, 0.2);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; }
+        body { background-color: var(--bg-main); color: var(--text-main); height: 100vh; overflow: hidden; transition: background-color 0.3s ease, color 0.3s ease; }
 
         /* ═══════════════════════════════════
            HEADER
@@ -210,6 +212,185 @@
         .dropdown a:hover { background: var(--bg-main); }
         .dropdown a i { width: 16px; text-align: center; color: var(--text-secondary); }
         .dropdown-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+        /* Theme toggle row inside dropdown */
+        .dropdown-theme-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 12px; border-radius: var(--radius-sm);
+            cursor: pointer; transition: var(--transition);
+            color: var(--text-main); font-size: 13px; font-weight: 500;
+        }
+        .dropdown-theme-row:hover { background: var(--bg-main); }
+        .dropdown-theme-row .left { display: flex; align-items: center; gap: 10px; }
+        .dropdown-theme-row .left i { width: 16px; text-align: center; color: var(--text-secondary); }
+
+        .theme-toggle-pill {
+            width: 44px; height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            position: relative;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+        .theme-toggle-pill.dark { background: var(--aura-gradient); }
+        .theme-toggle-pill::after {
+            content: '';
+            position: absolute; top: 3px; left: 3px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: white;
+            transition: var(--transition);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        .theme-toggle-pill.dark::after { left: 23px; }
+
+        /* ═══════════════════════════════════
+           THEME PICKER MODAL (first launch)
+        ═══════════════════════════════════ */
+        #theme-picker-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            z-index: 99999;
+            align-items: flex-end;
+            justify-content: center;
+            animation: fadeIn 0.25s ease;
+        }
+        #theme-picker-overlay.open { display: flex; }
+
+        #theme-picker-sheet {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            padding: 0 0 max(28px, env(safe-area-inset-bottom));
+            animation: sheetSlideUp 0.38s cubic-bezier(0.165, 0.84, 0.44, 1);
+            overflow: hidden;
+        }
+
+        @keyframes sheetSlideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .theme-picker-handle {
+            width: 40px; height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+
+        .theme-picker-header {
+            padding: 20px 24px 8px;
+            text-align: center;
+        }
+        .theme-picker-header h3 {
+            font-size: 18px; font-weight: 700; letter-spacing: -0.3px;
+            margin-bottom: 6px;
+        }
+        .theme-picker-header p {
+            font-size: 13px; color: var(--text-secondary); line-height: 1.5;
+        }
+
+        .theme-picker-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 20px 24px;
+        }
+
+        .theme-option {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            cursor: pointer;
+            border: 2.5px solid transparent;
+            transition: var(--transition);
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+        }
+        .theme-option:active { transform: scale(0.97); }
+        .theme-option.selected {
+            border-color: var(--aura-primary);
+            box-shadow: 0 0 0 4px rgba(224,8,246,0.15);
+        }
+
+        .theme-option-preview {
+            height: 120px;
+            display: flex; flex-direction: column;
+            padding: 12px;
+            gap: 6px;
+        }
+        .theme-option-preview.light-prev {
+            background: #f4f5f8;
+        }
+        .theme-option-preview.dark-prev {
+            background: #0d0e11;
+        }
+
+        /* Mini preview elements */
+        .prev-bar {
+            height: 8px; border-radius: 4px;
+        }
+        .prev-bar.w-full { width: 100%; }
+        .prev-bar.w-60 { width: 60%; }
+        .prev-bar.w-40 { width: 40%; }
+        .light-prev .prev-bar { background: #e5e7eb; }
+        .light-prev .prev-bar.accent { background: linear-gradient(90deg,#e008f6,#803afb); }
+        .dark-prev .prev-bar { background: #252830; }
+        .dark-prev .prev-bar.accent { background: linear-gradient(90deg,#e008f6,#803afb); }
+
+        .prev-card {
+            flex: 1; border-radius: 6px;
+            display: flex; align-items: center; gap: 5px;
+            padding: 6px 8px;
+        }
+        .light-prev .prev-card { background: #ffffff; }
+        .dark-prev .prev-card { background: #16181d; }
+
+        .prev-dot {
+            width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        }
+        .prev-line {
+            height: 5px; border-radius: 3px; flex: 1;
+        }
+        .light-prev .prev-line { background: #e5e7eb; }
+        .dark-prev .prev-line { background: #252830; }
+
+        .theme-option-label {
+            padding: 10px 14px 12px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .theme-option-label span {
+            font-size: 14px; font-weight: 600;
+        }
+        .light-option-label { background: #f4f5f8; color: #1a1b1e; }
+        .dark-option-label { background: #16181d; color: #f1f3f5; }
+
+        .theme-check {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: 2px solid transparent;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: white;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .theme-option.selected .theme-check {
+            background: var(--aura-gradient);
+            border-color: transparent;
+        }
+        .theme-option:not(.selected) .theme-check {
+            border-color: #9ca3af;
+        }
+
+        .theme-picker-footer {
+            padding: 4px 24px 0;
+        }
+        .theme-picker-footer .btn-primary {
+            width: 100%; justify-content: center;
+            padding: 14px; font-size: 15px;
+            border-radius: var(--radius-lg);
+        }
 
         /* ═══════════════════════════════════
            DASHBOARD
@@ -887,7 +1068,6 @@
            NYRA AI PANEL — Mobile-first
         ═══════════════════════════════════ */
 
-        /* Backdrop (mobile only) */
         #nyra-backdrop {
             display: none;
             position: fixed; inset: 0;
@@ -899,10 +1079,8 @@
         }
         #nyra-backdrop.open { display: block; }
 
-        /* Panel — bottom sheet on mobile, floating card on desktop */
         #nyra-panel {
             position: fixed;
-            /* Mobile default: bottom sheet */
             bottom: 0; left: 0; right: 0;
             width: 100%;
             height: 72vh;
@@ -915,10 +1093,8 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* hidden by default — slide in from bottom */
             transform: translateY(100%);
             transition: transform 0.38s cubic-bezier(0.165, 0.84, 0.44, 1);
-            /* keep in DOM for animation, just off-screen */
             pointer-events: none;
         }
         #nyra-panel.open {
@@ -926,7 +1102,6 @@
             pointer-events: all;
         }
 
-        /* Drag handle */
         .nyra-drag-handle {
             width: 40px; height: 4px;
             background: var(--border);
@@ -973,7 +1148,6 @@
         }
         .nyra-panel-close:hover { background: rgba(239,68,68,0.1); color: #ef4444; }
 
-        /* Suggestions */
         .nyra-suggestions {
             display: flex; gap: 6px; overflow-x: auto;
             padding: 10px 16px 0;
@@ -999,7 +1173,6 @@
             color: white; border-color: transparent;
         }
 
-        /* Chat body */
         .nyra-chat-body {
             flex: 1; overflow-y: auto;
             padding: 14px 16px;
@@ -1010,7 +1183,6 @@
         .nyra-chat-body::-webkit-scrollbar { width: 3px; }
         .nyra-chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-        /* Messages */
         .nyra-msg {
             display: flex; gap: 8px;
             animation: nyraMsg 0.22s ease;
@@ -1049,7 +1221,6 @@
             border-bottom-right-radius: 6px;
         }
 
-        /* Typing indicator */
         .nyra-typing {
             display: flex; align-items: center; gap: 4px;
             padding: 4px 0;
@@ -1066,7 +1237,6 @@
             40% { transform: scale(1); opacity: 1; }
         }
 
-        /* Action result card */
         .nyra-action-card {
             margin-top: 6px;
             padding: 10px 12px;
@@ -1087,7 +1257,6 @@
         }
         .nyra-action-item i { color: var(--nyra-primary); font-size: 10px; width: 12px; }
 
-        /* Input area */
         .nyra-input-area {
             padding: 12px 16px;
             padding-bottom: max(12px, env(safe-area-inset-bottom));
@@ -1138,14 +1307,13 @@
             text-align: center; margin-top: 6px;
         }
 
-        /* Nyra FAB — visible when panel is closed, only in board view */
         #nyra-fab {
             position: fixed;
             bottom: 24px; right: 24px;
             width: 56px; height: 56px; border-radius: 50%;
             background: var(--nyra-gradient);
             border: none; cursor: pointer;
-            display: none; /* shown by JS when board is open */
+            display: none;
             align-items: center; justify-content: center;
             color: white; font-size: 22px;
             z-index: 1998;
@@ -1158,7 +1326,6 @@
         #nyra-fab.hidden { display: none !important; }
         #nyra-fab.visible { display: flex; }
 
-        /* Pulse ring on FAB */
         #nyra-fab::after {
             content: '';
             position: absolute; inset: -5px;
@@ -1175,18 +1342,14 @@
             50% { opacity: 0.4; }
         }
 
-        /* ── DESKTOP OVERRIDE (≥ 640px) ──
-           On larger screens: floating card in bottom-right corner */
         @media (min-width: 640px) {
             #nyra-backdrop { display: none !important; }
             #nyra-panel {
-                /* override bottom-sheet sizing */
                 bottom: 24px; right: 24px;
                 left: auto; width: 400px;
                 height: auto; max-height: 580px;
                 border-radius: var(--radius-xl);
                 box-shadow: var(--shadow-xl), var(--nyra-glow);
-                /* use opacity+scale instead of translateY */
                 transform: translateY(16px) scale(0.97);
                 opacity: 0;
                 transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1),
@@ -1289,12 +1452,69 @@
             .form-row { grid-template-columns: 1fr; }
             .list-table-header, .list-row { grid-template-columns: 2fr 1fr 80px; }
             .list-th:nth-child(n+4), .list-row > *:nth-child(n+4) { display: none; }
-            /* On mobile hide the "Nyra AI" text label in header to save space */
             .btn-nyra-header span { display: none; }
         }
     </style>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════
+     THEME PICKER — primo avvio
+═══════════════════════════════════════ -->
+<div id="theme-picker-overlay">
+    <div id="theme-picker-sheet">
+        <div class="theme-picker-handle"></div>
+        <div class="theme-picker-header">
+            <h3>Scegli il tema 🎨</h3>
+            <p>Come preferisci usare Aura Tasks?<br>Potrai cambiarlo in qualsiasi momento dalle impostazioni.</p>
+        </div>
+        <div class="theme-picker-options">
+            <!-- LIGHT -->
+            <div class="theme-option selected" id="tp-light" onclick="selectThemePicker('light')">
+                <div class="theme-option-preview light-prev">
+                    <div class="prev-bar w-full accent"></div>
+                    <div class="prev-bar w-60"></div>
+                    <div class="prev-card">
+                        <div class="prev-dot" style="background:#22c55e;"></div>
+                        <div class="prev-line"></div>
+                    </div>
+                    <div class="prev-card">
+                        <div class="prev-dot" style="background:#f59e0b;"></div>
+                        <div class="prev-line" style="width:55%;"></div>
+                    </div>
+                </div>
+                <div class="theme-option-label light-option-label">
+                    <span>☀️ Chiaro</span>
+                    <div class="theme-check"><i class="fas fa-check" style="font-size:9px;"></i></div>
+                </div>
+            </div>
+            <!-- DARK -->
+            <div class="theme-option" id="tp-dark" onclick="selectThemePicker('dark')">
+                <div class="theme-option-preview dark-prev">
+                    <div class="prev-bar w-full accent"></div>
+                    <div class="prev-bar w-60"></div>
+                    <div class="prev-card">
+                        <div class="prev-dot" style="background:#22c55e;"></div>
+                        <div class="prev-line"></div>
+                    </div>
+                    <div class="prev-card">
+                        <div class="prev-dot" style="background:#f59e0b;"></div>
+                        <div class="prev-line" style="width:55%;"></div>
+                    </div>
+                </div>
+                <div class="theme-option-label dark-option-label">
+                    <span>🌙 Scuro</span>
+                    <div class="theme-check"><i class="fas fa-check" style="font-size:9px;"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="theme-picker-footer">
+            <button class="btn-primary" onclick="confirmThemePicker()">
+                <i class="fas fa-check"></i> Conferma
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- ═══════════════════════════════════════
      HEADER
@@ -1305,7 +1525,7 @@
             <i class="fas fa-arrow-left"></i>
         </button>
         <div class="brand-logo" onclick="closeBoard()">
-            <img src="images/auratasks.svg" class="brand-logo" style="width:36px; height:36px; border-radius:10px;">
+            <img src="/images/auratasks.svg" class="brand-logo" style="width:36px; height:36px; border-radius:10px;">
         </div>
         <div id="board-title-container">
             <i class="fas fa-chevron-right" style="font-size:10px; color:var(--text-muted)"></i>
@@ -1338,6 +1558,15 @@
                 <div class="dropdown-header">
                     <p id="user-name">Caricamento...</p>
                     <span id="user-uid"></span>
+                </div>
+                <div class="dropdown-divider"></div>
+                <!-- IMPOSTAZIONI TEMA -->
+                <div class="dropdown-theme-row" onclick="openThemePicker(); event.stopPropagation();">
+                    <div class="left">
+                        <i class="fas fa-moon"></i>
+                        <span>Tema</span>
+                    </div>
+                    <div class="theme-toggle-pill" id="theme-pill"></div>
                 </div>
                 <div class="dropdown-divider"></div>
                 <a onclick="signOut()"><i class="fas fa-sign-out-alt"></i> Esci</a>
@@ -1706,7 +1935,6 @@
     <div class="nyra-panel-header">
         <div class="nyra-panel-title">
             <div class="nyra-avatar-wrap">
-                <!-- Nyra icon: sparkles as fallback -->
                 <i class="fas fa-wand-magic-sparkles" style="color:white;font-size:14px;"></i>
                 <div class="nyra-status-dot"></div>
             </div>
@@ -1717,9 +1945,7 @@
         </div>
         <button class="nyra-panel-close" onclick="toggleNyraPanel()"><i class="fas fa-times"></i></button>
     </div>
-    <div class="nyra-chat-body" id="nyra-chat-body">
-        <!-- Messages injected by JS -->
-    </div>
+    <div class="nyra-chat-body" id="nyra-chat-body"></div>
     <div class="nyra-suggestions" id="nyra-suggestions">
         <div class="nyra-suggestion-chip" onclick="nyraQuickSend('Crea una task urgente per oggi')"><i class="fas fa-bolt"></i> Task urgente</div>
         <div class="nyra-suggestion-chip" onclick="nyraQuickSend('Mostrami le task in corso')"><i class="fas fa-eye"></i> In corso</div>
@@ -1739,7 +1965,7 @@
     </div>
 </div>
 
-<!-- FAB Nyra (visible when panel closed) -->
+<!-- FAB Nyra -->
 <button id="nyra-fab" class="hidden" onclick="toggleNyraPanel()" title="Apri Nyra AI">
     <i class="fas fa-wand-magic-sparkles"></i>
 </button>
@@ -1759,6 +1985,89 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// ════════════════════════════════════════════
+// THEME SYSTEM
+// ════════════════════════════════════════════
+const THEME_KEY = 'aura_tasks_theme';
+const THEME_SET_KEY = 'aura_tasks_theme_set';
+
+let currentTheme = 'light';
+let themePickerSelected = 'light'; // scelta temporanea nel picker
+
+/**
+ * Applica il tema al documento e aggiorna la pill nel dropdown
+ */
+function applyTheme(theme) {
+    currentTheme = theme;
+    if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    // Aggiorna pill nel dropdown
+    const pill = document.getElementById('theme-pill');
+    if (pill) pill.classList.toggle('dark', theme === 'dark');
+    // Persisti
+    localStorage.setItem(THEME_KEY, theme);
+}
+
+/**
+ * Selezione temporanea nel picker (non ancora confermata)
+ */
+function selectThemePicker(theme) {
+    themePickerSelected = theme;
+    document.getElementById('tp-light').classList.toggle('selected', theme === 'light');
+    document.getElementById('tp-dark').classList.toggle('selected', theme === 'dark');
+    // Anteprima live mentre scegli
+    applyTheme(theme);
+}
+
+/**
+ * Conferma la scelta nel picker e chiude l'overlay
+ */
+function confirmThemePicker() {
+    applyTheme(themePickerSelected);
+    localStorage.setItem(THEME_SET_KEY, '1');
+    document.getElementById('theme-picker-overlay').classList.remove('open');
+}
+
+/**
+ * Apre il theme picker dal dropdown profilo
+ */
+function openThemePicker() {
+    // Chiudi dropdown
+    document.getElementById('user-dropdown').classList.remove('open');
+    // Imposta selezione corrente
+    themePickerSelected = currentTheme;
+    document.getElementById('tp-light').classList.toggle('selected', currentTheme === 'light');
+    document.getElementById('tp-dark').classList.toggle('selected', currentTheme === 'dark');
+    document.getElementById('theme-picker-overlay').classList.add('open');
+}
+
+/**
+ * Init tema: primo avvio → mostra picker, altrimenti ripristina quello salvato
+ */
+function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    const alreadySet = localStorage.getItem(THEME_SET_KEY);
+
+    if (!alreadySet) {
+        // Prima apertura: mostra il picker
+        // Imposta light come default visivo
+        applyTheme('light');
+        themePickerSelected = 'light';
+        document.getElementById('tp-light').classList.add('selected');
+        document.getElementById('tp-dark').classList.remove('selected');
+        document.getElementById('theme-picker-overlay').classList.add('open');
+    } else {
+        // Ripristina tema salvato
+        applyTheme(saved || 'light');
+    }
+}
+
+// Avvia tema subito
+initTheme();
 
 // ════════════════════════════════════════════
 // COVERS
@@ -1800,7 +2109,7 @@ let panelSaveTimeout = null;
 // NYRA STATE
 // ════════════════════════════════════════════
 const NYRA_API = 'https://api.nyra.aurastudioitalia.it/nyra';
-let nyraHistory = []; // gestita dal server (updatedHistory)
+let nyraHistory = [];
 let nyraIsProcessing = false;
 let nyraPanelOpen = false;
 
@@ -1943,11 +2252,9 @@ function openBoard(boardId, boardData) {
     document.getElementById('dash-new-board').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'none';
     document.getElementById('board-view').style.display = 'flex';
-    // Show Nyra FAB
     const fab = document.getElementById('nyra-fab');
     fab.classList.remove('hidden');
     fab.classList.add('visible');
-    // Init Nyra chat for this board
     nyraInitChat();
     loadCollaboratorsCache().then(() => loadTasks());
     switchView('kanban');
@@ -1956,7 +2263,6 @@ function openBoard(boardId, boardData) {
 function closeBoard() {
     if (tasksListener) { tasksListener(); tasksListener = null; }
     closeTaskPanel();
-    // Close Nyra if open
     if (nyraPanelOpen) toggleNyraPanel();
     document.getElementById('nyra-fab').classList.remove('visible');
     document.getElementById('nyra-fab').classList.add('hidden');
@@ -2532,15 +2838,8 @@ async function deleteBoard() {
 }
 
 // ════════════════════════════════════════════
-// ██████████████████████████████████████████
-//  NYRA AI INTEGRATION
-// ██████████████████████████████████████████
+// NYRA AI INTEGRATION
 // ════════════════════════════════════════════
-
-/**
- * Build a rich system prompt that includes current board context
- * so Nyra knows exactly what tasks exist and can act on them.
- */
 function nyraBuildSystemPrompt() {
     const boardTitle = currentBoardData?.title || 'Senza titolo';
     const boardDesc = currentBoardData?.description || '';
@@ -2548,7 +2847,6 @@ function nyraBuildSystemPrompt() {
     const role = currentBoardRole || 'Editor';
     const canEdit = role === 'Proprietario' || role === 'Editor';
 
-    // Serialize current tasks as JSON for Nyra
     const tasksJson = JSON.stringify(allTasks.map(t => ({
         id: t.id,
         title: t.title,
@@ -2576,106 +2874,71 @@ ${tasksJson}
 Rispondi SEMPRE con un JSON nel seguente formato (nient'altro, solo JSON):
 {
   "message": "Il tuo messaggio in italiano all'utente (markdown supportato per elenchi)",
-  "actions": [
-    // Array di azioni da eseguire (può essere vuoto [])
-    // Ogni azione è un oggetto con "type" e i campi necessari
-  ]
+  "actions": []
 }
 
 === TIPI DI AZIONI ===
 1. Crea task:
    { "type": "create", "title": "Titolo", "description": "...", "status": "todo|inprogress|done|blocked", "priority": "low|medium|high", "dueDate": "YYYY-MM-DD o null" }
-
 2. Modifica task:
    { "type": "update", "id": "taskId", "title": "...", "description": "...", "status": "...", "priority": "...", "dueDate": "..." }
-   (includi solo i campi da modificare, oltre a "id")
-
 3. Elimina task:
    { "type": "delete", "id": "taskId" }
-
-4. Elimina più task (filtrando per status):
+4. Elimina per status:
    { "type": "delete_by_status", "status": "done" }
 
 === REGOLE ===
-- ${canEdit ? 'Puoi eseguire azioni di creazione, modifica ed eliminazione.' : 'NON puoi modificare (ruolo visualizzatore). Puoi solo descrivere le task esistenti.'}
-- Usa gli "id" esatti presenti nel JSON delle task quando modifichi o elimini.
-- Per "dueDate" usa il formato YYYY-MM-DD. Se l'utente dice "oggi" usa ${new Date().toISOString().split('T')[0]}, "domani" usa ${new Date(Date.now()+86400000).toISOString().split('T')[0]}.
-- Se l'utente non specifica priorità, usa "medium". Se non specifica status, usa "todo".
-- Sii proattivo: se l'utente vuole creare 3 task, generale tutte e 3 in una risposta.
+- ${canEdit ? 'Puoi eseguire azioni.' : 'NON puoi modificare (ruolo visualizzatore).'}
+- Usa gli "id" esatti presenti nel JSON.
+- Per "dueDate" usa YYYY-MM-DD. "oggi" = ${new Date().toISOString().split('T')[0]}, "domani" = ${new Date(Date.now()+86400000).toISOString().split('T')[0]}.
 - "message" deve essere amichevole, conciso e in italiano. Puoi usare emoji.
 - Non includere mai testo fuori dal JSON.`;
 }
 
-/**
- * Toggle Nyra panel — bottom sheet on mobile, floating card on desktop
- */
 function toggleNyraPanel() {
     const panel = document.getElementById('nyra-panel');
     const fab = document.getElementById('nyra-fab');
     const backdrop = document.getElementById('nyra-backdrop');
     nyraPanelOpen = !nyraPanelOpen;
-
     panel.classList.toggle('open', nyraPanelOpen);
     backdrop.classList.toggle('open', nyraPanelOpen);
-
     if (nyraPanelOpen) {
         fab.classList.add('hidden');
-        // Focus input after transition completes
-        setTimeout(() => {
-            const input = document.getElementById('nyra-input');
-            if (input) input.focus();
-        }, 380);
+        setTimeout(() => { const input = document.getElementById('nyra-input'); if (input) input.focus(); }, 380);
     } else {
         fab.classList.remove('hidden');
         fab.classList.add('visible');
     }
 }
 
-// Close Nyra on Escape
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && nyraPanelOpen) toggleNyraPanel();
 });
 
-// Swipe-down to close Nyra panel (mobile)
 (function() {
     let startY = 0, startTime = 0;
     const panel = document.getElementById('nyra-panel');
-    panel.addEventListener('touchstart', e => {
-        startY = e.touches[0].clientY;
-        startTime = Date.now();
-    }, { passive: true });
+    panel.addEventListener('touchstart', e => { startY = e.touches[0].clientY; startTime = Date.now(); }, { passive: true });
     panel.addEventListener('touchend', e => {
         const dy = e.changedTouches[0].clientY - startY;
         const dt = Date.now() - startTime;
-        // Quick downward swipe of > 80px in < 400ms on the handle or header
         const target = e.target;
-        const isHandle = target.classList.contains('nyra-drag-handle') ||
-                         target.closest('.nyra-panel-header');
-        if (dy > 80 && dt < 400 && isHandle && nyraPanelOpen) {
-            toggleNyraPanel();
-        }
+        const isHandle = target.classList.contains('nyra-drag-handle') || target.closest('.nyra-panel-header');
+        if (dy > 80 && dt < 400 && isHandle && nyraPanelOpen) toggleNyraPanel();
     }, { passive: true });
 })();
 
-/**
- * Initialize Nyra chat for a new board session
- */
 function nyraInitChat() {
     nyraHistory = [];
     const body = document.getElementById('nyra-chat-body');
     body.innerHTML = '';
-    // Welcome message
     nyraAddMessage('ai', `Ciao! 👋 Sono **Nyra**, la tua assistente AI.\n\nSono connessa alla bacheca **"${currentBoardData?.title || 'corrente'}"** e posso aiutarti a **creare**, **modificare** ed **eliminare** task con un semplice messaggio.\n\nCosa vuoi fare?`);
 }
 
-/**
- * Add a message bubble to the chat UI
- */
 function nyraAddMessage(role, content, actions) {
     const body = document.getElementById('nyra-chat-body');
     const wrap = document.createElement('div');
     wrap.className = `nyra-msg ${role}`;
-
     const avatar = document.createElement('div');
     avatar.className = `nyra-msg-avatar ${role === 'ai' ? 'ai' : 'user-av'}`;
     if (role === 'ai') avatar.innerHTML = '<i class="fas fa-wand-magic-sparkles" style="font-size:11px;"></i>';
@@ -2683,17 +2946,10 @@ function nyraAddMessage(role, content, actions) {
         const u = currentUserData;
         avatar.textContent = u ? (u.nome[0] + (u.cognome?.[0] || '')).toUpperCase() : '?';
     }
-
     const bubble = document.createElement('div');
     bubble.className = 'nyra-msg-bubble';
-
-    // Render markdown-ish (bold, lists)
-    let html = escHtml(content)
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\n/g, '<br>');
+    let html = escHtml(content).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>');
     bubble.innerHTML = html;
-
-    // If there were actions, show a summary card
     if (actions && actions.length > 0) {
         const card = document.createElement('div');
         card.className = 'nyra-action-card';
@@ -2709,16 +2965,12 @@ function nyraAddMessage(role, content, actions) {
         });
         bubble.appendChild(card);
     }
-
     wrap.appendChild(avatar);
     wrap.appendChild(bubble);
     body.appendChild(wrap);
     body.scrollTop = body.scrollHeight;
 }
 
-/**
- * Show/hide Nyra typing indicator
- */
 function nyraSetTyping(visible) {
     const body = document.getElementById('nyra-chat-body');
     const existing = document.getElementById('nyra-typing-indicator');
@@ -2737,32 +2989,15 @@ function nyraSetTyping(visible) {
     }
 }
 
-/**
- * Execute a single action returned by Nyra
- */
 async function nyraExecuteAction(action) {
     const canEdit = currentBoardRole === 'Proprietario' || currentBoardRole === 'Editor';
-    if (!canEdit) return action; // skip if viewer
-
+    if (!canEdit) return action;
     const ref = db.collection('tasks').doc(currentBoardId).collection('items');
     const ts = firebase.firestore.FieldValue.serverTimestamp();
-
     if (action.type === 'create') {
-        await ref.add({
-            title: action.title || 'Task senza titolo',
-            description: action.description || '',
-            status: action.status || 'todo',
-            priority: action.priority || 'medium',
-            dueDate: action.dueDate || null,
-            assignees: action.assignees || [],
-            urls: action.urls || [],
-            createdBy: currentUser.uid,
-            createdAt: ts,
-            updatedAt: ts
-        });
+        await ref.add({ title: action.title || 'Task senza titolo', description: action.description || '', status: action.status || 'todo', priority: action.priority || 'medium', dueDate: action.dueDate || null, assignees: action.assignees || [], urls: action.urls || [], createdBy: currentUser.uid, createdAt: ts, updatedAt: ts });
         return { ...action };
     }
-
     if (action.type === 'update') {
         const task = allTasks.find(t => t.id === action.id);
         action.resolvedTitle = task?.title || action.id;
@@ -2776,7 +3011,6 @@ async function nyraExecuteAction(action) {
         await ref.doc(action.id).update(update);
         return { ...action };
     }
-
     if (action.type === 'delete') {
         const task = allTasks.find(t => t.id === action.id);
         action.resolvedTitle = task?.title || action.id;
@@ -2784,7 +3018,6 @@ async function nyraExecuteAction(action) {
         if (currentTaskId === action.id) closeTaskPanel();
         return { ...action };
     }
-
     if (action.type === 'delete_by_status') {
         const toDelete = allTasks.filter(t => (t.status || 'todo') === action.status);
         const batch = db.batch();
@@ -2794,91 +3027,41 @@ async function nyraExecuteAction(action) {
         action.count = toDelete.length;
         return { ...action };
     }
-
     return action;
 }
 
-/**
- * Main Nyra send function — usa la stessa logica di Aura Docs
- * Payload: { message, history, systemPrompt }
- * Risposta: { reply, updatedHistory }
- */
 async function nyraSend() {
     const input = document.getElementById('nyra-input');
     const msg = input.value.trim();
     if (!msg || nyraIsProcessing) return;
     if (!currentBoardId) { showToast('⚠️ Apri una bacheca per usare Nyra'); return; }
-
-    // Mostra messaggio utente
     nyraAddMessage('user', msg);
     input.value = '';
     nyraAutoResize(input);
-
-    // Lock UI
     nyraIsProcessing = true;
     document.getElementById('nyra-send-btn').disabled = true;
     nyraSetTyping(true);
-
     try {
         const systemPrompt = nyraBuildSystemPrompt();
-
         const response = await fetch(NYRA_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: msg,
-                history: nyraHistory,
-                systemPrompt: systemPrompt
-            })
+            body: JSON.stringify({ message: msg, history: nyraHistory, systemPrompt })
         });
-
-        if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(err.error || `Errore ${response.status}`);
-        }
-
+        if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.error || `Errore ${response.status}`); }
         const data = await response.json();
         const reply = data.reply || '';
-
         if (!reply) throw new Error('Risposta vuota dal server.');
-
-        // Aggiorna la cronologia con quella restituita dal server
-        if (Array.isArray(data.updatedHistory)) {
-            nyraHistory = data.updatedHistory;
-        } else {
-            // Fallback: aggiorna manualmente
-            nyraHistory.push({ role: 'user', content: msg });
-            nyraHistory.push({ role: 'assistant', content: reply });
-        }
-
-        // Il reply da Nyra è un JSON con { message, actions[] }
+        if (Array.isArray(data.updatedHistory)) nyraHistory = data.updatedHistory;
+        else { nyraHistory.push({ role: 'user', content: msg }); nyraHistory.push({ role: 'assistant', content: reply }); }
         let parsed = null;
-        try {
-            const clean = reply.replace(/```json|```/g, '').trim();
-            parsed = JSON.parse(clean);
-        } catch (e) {
-            // Non è JSON strutturato → trattalo come risposta testuale senza azioni
-            parsed = { message: reply, actions: [] };
-        }
-
+        try { const clean = reply.replace(/```json|```/g, '').trim(); parsed = JSON.parse(clean); } catch (e) { parsed = { message: reply, actions: [] }; }
         const aiMessage = parsed.message || reply;
         const actions = Array.isArray(parsed.actions) ? parsed.actions : [];
-
-        // Esegui le azioni su Firebase
         const executedActions = [];
-        for (const action of actions) {
-            try {
-                const result = await nyraExecuteAction(action);
-                executedActions.push(result);
-            } catch (err) {
-                console.error('Nyra action error:', err);
-            }
-        }
-
+        for (const action of actions) { try { const result = await nyraExecuteAction(action); executedActions.push(result); } catch (err) { console.error('Nyra action error:', err); } }
         nyraSetTyping(false);
         nyraAddMessage('ai', aiMessage, executedActions.length > 0 ? executedActions : null);
-
-        // Toast di conferma azioni
         if (executedActions.length > 0) {
             const creates = executedActions.filter(a => a.type === 'create').length;
             const updates = executedActions.filter(a => a.type === 'update').length;
@@ -2889,7 +3072,6 @@ async function nyraSend() {
             if (deletes > 0) parts.push(`eliminata${deletes > 1 ? 'e' : ''}`);
             showToast(`✨ Nyra: ${parts.join(', ')}`);
         }
-
     } catch (err) {
         console.error('Nyra API error:', err);
         nyraSetTyping(false);
@@ -2901,33 +3083,14 @@ async function nyraSend() {
     }
 }
 
-/**
- * Quick send from suggestion chips — scrive nel campo e triggera nyraSend
- */
 function nyraQuickSend(text) {
     const input = document.getElementById('nyra-input');
     input.value = text;
     nyraAutoResize(input);
     nyraSend();
 }
-
-/**
- * Keyboard handler for Nyra input (Enter = send, Shift+Enter = newline)
- */
-function nyraKeydown(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        if (!nyraIsProcessing) nyraSend();
-    }
-}
-
-/**
- * Auto-resize textarea as user types
- */
-function nyraAutoResize(el) {
-    el.style.height = 'auto';
-    el.style.height = Math.min(el.scrollHeight, 80) + 'px';
-}
+function nyraKeydown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); if (!nyraIsProcessing) nyraSend(); } }
+function nyraAutoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 80) + 'px'; }
 
 // ════════════════════════════════════════════
 // UTILITIES
